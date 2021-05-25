@@ -52,6 +52,7 @@ for epoch in range(1):  # loop over the dataset multiple times
     df2 = df2.rename(columns = {'GENDER': 'Sex'})
     df = pd.concat([df,df1,df2])
     df = df.loc[(df['Group'] == 'AD') | (df['Group'] == 'CN')]
+# save relevant lists
     diagnosis = df['Group'].astype('str').tolist() 
     Gender = df['Sex'].astype('str').tolist() 
     print(set(Gender))
@@ -107,6 +108,7 @@ for epoch in range(1):  # loop over the dataset multiple times
         x = predicted2.flatten().tolist()
         y = 10
         x = x[0]
+# for the confidences
         if (x < 0.6):
             y = 4
         elif (x < 0.7):
@@ -121,11 +123,14 @@ for epoch in range(1):  # loop over the dataset multiple times
             y = 10
         map = {'CN': 0, 'AD': 1}
         diagnosis_int = [map[word] for word in diagnosis]
+# for the true and wrong predictions
         z = [int(((predicted1.tolist())[0]) != diagnosis_int[i])]
         print((predicted1.tolist())[0])
         true = true + z
         confidences = confidences + [y]
-       
+
+
+# do the t-SNE
 X = saved
 X_embedded = TSNE(n_components=2).fit_transform(X)
 
@@ -133,31 +138,31 @@ print(set(datasets))
 for epoch in range(6):     
     alldata = alldata + saved
     if (epoch == 0):
-    
+#Color by site    
         map = {'ADNI1': 0, 'ADNI1_3T': 0, 'ADNI2' : 0, 'Field Strength=1.5': 1, 'Field Strength=3.0': 1, 'ItalianADNI_15T': 2, 'ItalianADNI_3T': 2}
         diagnosis_int = [map[word] for word in datasets]
         x= diagnosis_int
         cluster.tsneplot(score=X_embedded)
         #c = '#dc5c34', '#de653f', '#072969', '#4e87f3', '#147E27', '#4e8713', '#7aea8e', '#b57df4', '#210541', '#C2C297', '#434327',  '#f05050'
         cluster.tsneplot(score=X_embedded, colorlist=np.array(x), colordot=('#a03050','#072969','#147E27'), figname='sitewise', legendpos='upper right', legendanchor=(1.15, 1))
-
+# color by field strength
     elif (epoch ==1):
        map = {'ADNI1': 0, 'ADNI1_3T': 1, 'ADNI2' : 1, 'Field Strength=1.5': 0, 'Field Strength=3.0': 1, 'ItalianADNI_15T': 0, 'ItalianADNI_3T': 1}
        diagnosis_int = [map[word] for word in datasets]
        x= diagnosis_int
        cluster.tsneplot(score=X_embedded)
        #c = '#dc5c34', '#de653f', '#072969', '#4e87f3', '#147E27', '#4e8713', '#7aea8e', '#b57df4', '#210541', '#C2C297', '#434327',  '#f05050'
-       cluster.tsneplot(score=X_embedded, colorlist=np.array(x), colordot=('#d690f8','#460664'), figname='fieldstrengt.png', legendpos='upper right', legendanchor=(1.15, 1))
+       cluster.tsneplot(score=X_embedded, colorlist=np.array(x), colordot=('#d690f8','#460664'), figname='fieldstrength.png', legendpos='upper right', legendanchor=(1.15, 1))
 
     elif (epoch ==2):
-    
+# color by diagnosis    
        map = {'CN': 0, 'AD': 1}
        diagnosis_int = [map[word] for word in diagnosis]
        x = diagnosis_int
        cluster.tsneplot(score=X_embedded)
        #c = '#dc5c34', '#de653f', '#072969', '#4e87f3', '#147E27', '#4e8713', '#7aea8e', '#b57df4', '#210541', '#C2C297', '#434327',  '#f05050'
        cluster.tsneplot(score=X_embedded, colorlist=np.array(x), colordot=('#072969','#ed2121',), figname='diagnosis.png', legendpos='upper right', legendanchor=(1.15, 1))
-
+# color by gender
     elif (epoch ==3):
        unique = set(Gender)
        map = {'M': 0, 'F': 1, 'X': 0}
@@ -166,13 +171,13 @@ for epoch in range(6):
        cluster.tsneplot(score=X_embedded)
        #c = '#dc5c34', '#de653f', '#072969', '#4e87f3', '#147E27', '#4e8713', '#7aea8e', '#b57df4', '#210541', '#C2C297', '#434327',  '#f05050'
        cluster.tsneplot(score=X_embedded, colorlist=np.array(x), colordot=('#072969','#ed2121','#c61010'), figname='Gender.png', legendpos='upper right', legendanchor=(1.15, 1))
-
+# color by confidence
     elif (epoch == 4):
        x= confidences
        cluster.tsneplot(score=X_embedded)
        #c = '#dc5c34', '#de653f', '#072969', '#4e87f3', '#147E27', '#4e8713', '#7aea8e', '#b57df4', '#210541', '#C2C297', '#434327',  '#f05050'
        cluster.tsneplot(score=X_embedded, colorlist=np.array(x), colordot=('#f69292','#ee2f2f','#c61010', '#840a0a', '#420505'), figname='Confidences.png', legendpos='upper right', legendanchor=(1.15, 1))
-
+# BETA: color by true and worng predictions
     else:
        x= true
        cluster.tsneplot(score=X_embedded)
