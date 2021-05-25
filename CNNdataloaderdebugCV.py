@@ -24,12 +24,16 @@ from sklearn.model_selection import train_test_split
 
 torch.cuda.empty_cache()
 
-# put the csv fle in your home folder with this file
+# This file is for training the model from Basaia
+
+
+# put the csv fle in your home folder with this file. The following csv files contain relevant trainingdata
 df3 = pd.read_csv("dataset_with_filenames_allADNI_train4.csv", engine='python', sep=',')
 df2 = pd.read_csv("dataset_with_filenames_allADNI_val4.csv", engine='python', sep=',')
 df1 = pd.read_csv("dataset_with_filenames_allADNI_test4.csv", engine='python', sep=',')
 df = pd.concat([df3, df1,df2], ignore_index=True)
 
+# balance data
 df_new = df.groupby('Group').head(119)
 df.drop(df_new[:2*119].index, axis=0,inplace=True)
 df.to_csv( "testdatafromCVBasaia.csv")
@@ -37,7 +41,7 @@ df = df_new
 Data = df['Path'].astype('str').tolist()
 Target = df['Group'].astype('str').tolist()
 
-
+# print options - not really needed
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
 
@@ -70,7 +74,9 @@ for l in range(splits):
 #    save_df_train['Path'] = X_train
 #    save_df_train['Group'] = y_train
 #    save_df_train.to_csv("TrainCVRoundBasaia" + str(l))
-    
+
+# different test and validationset for each loop
+
     Target = np.roll(Target, testset_length)
     Data = np.roll(Data, testset_length)
 
@@ -90,6 +96,7 @@ for l in range(splits):
     dataloader_val = DataLoader(dataset_val, batch_size=3,
                         shuffle=True, num_workers=3)
 
+# Not really needed forloop. Used for training the model several times for few epochs at development
     for m in range(1):
         my_nn = NeuralNet.Net()
         my_nn.to(device)
@@ -109,7 +116,8 @@ for l in range(splits):
                
             running_loss = 0.0
             v_running_loss = 0.0
-            for i, (data, target) in enumerate(dataloader_train):
+#train
+            for i, (data, target) in enumerate(dataloader_train): 
                 #if i > 100:
                 #    break
                 #batch_size = (10,4,4,2)
@@ -136,6 +144,7 @@ for l in range(splits):
                 train_correct += (labels.squeeze() == predicted.squeeze()).sum().item()
                     # Iterate through test dataset
                 print(train_correct)
+#validate:
             for j, (v_images, v_labels) in enumerate(dataloader_val):
                 val = v_images.to(device)
                 v_labels  = (torch.tensor(v_labels)).float().to(device)
@@ -153,8 +162,8 @@ for l in range(splits):
 
                     # store loss and iteration
 
-            
-            torch.save(my_nn.state_dict(), "new_best-model_epoch_" + str(epoch) + "l=" + str(l) + "allADNI_BasaiaCV")
+#save and evaluate            
+            torch.save(my_nn.state_dict(), "modelname")
             print('new augmentation Learningrate: {} Testrun nr: {} Epoch: {}  Train_Loss: {}  Val_Loss: {} Train Accuracy: {} % Val Accuracy: {} %'.format(l, m, epoch, running_loss/len(dataloader_train), v_running_loss/len(dataloader_val), (100*train_correct)/total_train, (100*val_correct)/total_val))
             lossepoch.append(running_loss/len(dataloader_train))
             v_lossepoch.append(v_running_loss/len(dataloader_val))      
@@ -166,10 +175,10 @@ for l in range(splits):
             plt.xlabel("Epoch")
             plt.ylabel("Loss")
             plt.legend()
-            plt.title("Learningrate: " + str(l) + "BasaiaCV")
-            plt.savefig('round' + str(m) + 'losses_learning_rate' + str(l) + 'allADNI_BasaiaCV.png')
+            plt.title("something")
+            plt.savefig('round' + str(m) + 'name.png')
 
  
 
-        torch.save(my_nn.state_dict(), "new_best-model_learningrate_" + str(l)  )
+        torch.save(my_nn.state_dict(), "name" + str(l)  )
 print('Finished Training')
